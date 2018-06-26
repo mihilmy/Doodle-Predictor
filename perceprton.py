@@ -1,42 +1,55 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Perceptron:
 
-  def __init__(self, n):
+  def __init__(self, n, epochs):
     self.weights = np.random.rand(n)
+    self.epochs = epochs
     self.lr = 0.001
-
   """
-  Trains a single example and adjusts the weights accordingly.
+  Batch training of examples, on each iteration it adjust the weight vector.
   """
-  def train(self, inputs, label):
-    guess = self.activate(np.dot(self.weights, inputs.T))
-    error = label - guess
-
-    self.weights = self.weights + (self.lr * error * inputs)
+  def train(self, inputs, labels):
+    for _ in range(self.epochs):
+      for row,label in zip(inputs, labels):
+        guess = self.activate(np.dot(self.weights, row.T))
+        error = label - guess
+        self.weights = self.weights + (self.lr * error * row) 
 
   """
   Test function to test how well the perceptron has learned.
   Outputs the percentage of correct answers.
   """
   def test(self, inputs, labels):
-    result = np.dot(inputs[:, :2], self.weights)
+    result = np.dot(inputs, self.weights)
 
     result[result >= 0] = 1;
-    result[result < 0] = -1;
+    result[result <  0] = -1;
 
-    percent = np.count_nonzero(result == labels) / result.size
+
+    correct = (result == labels)
+    not_correct = (result != labels)
+
+    plt.figure()
+    plt.plot(inputs[correct, 0], inputs[correct,1], 'go')
+    plt.plot(inputs[not_correct, 0], inputs[not_correct,1], 'ro')
+    
+    # Draw Margin
+    x = np.linspace(-400, 600, 100)
+    plt.plot(x, x, label='linear')
+
+    percent = np.count_nonzero(correct) / result.size
 
     print("Test Accuracy ", percent * 100)
+
+    plt.show(block=True)
 
   """
   Activation function representing the sign function.
   """    
-  def activate(self, sum):
-    if sum >=0:
-      return 1
-    else:
-      return -1 
+  def activate(self, x):
+    return 1 if x >=0 else -1 
 
 
 """
@@ -53,15 +66,16 @@ def create_data(size):
 
   return data,labels
 
+
 """
-Main script code lies here for testing
+Main Script
 """
-ptron = Perceptron(2)
+ptron = Perceptron(2, 1000)
 tr_data, tr_labels = create_data((128, 2))
 
-for x in range(1000):
-  for inputs,label in zip(tr_data,tr_labels):
-    ptron.train(inputs, label)
+ptron.train(tr_data, tr_labels)
 
-ts_data, ts_labels = create_data((2048, 2))
+ts_data, ts_labels = create_data((1024, 2))
+
 ptron.test(ts_data, ts_labels)
+
