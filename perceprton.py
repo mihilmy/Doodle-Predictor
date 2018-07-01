@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 class Perceptron:
 
   def __init__(self, n, epochs):
-    self.weights = np.random.rand(n)
+    self.weights = np.random.rand(n + 1)
     self.epochs = epochs
     self.lr = 0.001
   """
   Batch training of examples, on each iteration it adjust the weight vector.
   """
   def train(self, inputs, labels):
+    # Add an extra column for the bias
+    inputs = np.insert(inputs, 2 , 1, axis=1)
     for _ in range(self.epochs):
       for row,label in zip(inputs, labels):
         guess = self.activate(np.dot(self.weights, row.T))
@@ -22,11 +24,11 @@ class Perceptron:
   Outputs the percentage of correct answers.
   """
   def test(self, inputs, labels):
+    inputs = np.insert(inputs, 2 , 1, axis=1)
     result = np.dot(inputs, self.weights)
 
-    result[result >= 0] = 1;
-    result[result <  0] = -1;
-
+    result[result >= 0] = 1
+    result[result <  0] = -1
 
     correct = (result == labels)
     not_correct = (result != labels)
